@@ -1,0 +1,68 @@
+
+#include <windows.h>
+
+#pragma code_page(65001) // UTF-8
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST runcat.manifest
+$app.ico ICON app.ico
+$dark_cat_0.ico ICON cat/dark_cat_0.ico
+$dark_cat_1.ico ICON cat/dark_cat_1.ico
+$dark_cat_2.ico ICON cat/dark_cat_2.ico
+$dark_cat_3.ico ICON cat/dark_cat_3.ico
+$dark_cat_4.ico ICON cat/dark_cat_4.ico
+$light_cat_0.ico ICON cat/light_cat_0.ico
+$light_cat_1.ico ICON cat/light_cat_1.ico
+$light_cat_2.ico ICON cat/light_cat_2.ico
+$light_cat_3.ico ICON cat/light_cat_3.ico
+$light_cat_4.ico ICON cat/light_cat_4.ico
+
+#define VERSIONINFO_TEMPLATE(block_id, lang_id, codepage_id, file_desc, comments) \
+VS_VERSION_INFO VERSIONINFO \
+FILEVERSION    0,0,0 \
+PRODUCTVERSION 0,0,0 \
+FILEOS         VOS_NT_WINDOWS32 \
+FILETYPE       VFT_APP \
+FILESUBTYPE    VFT2_UNKNOWN \
+BEGIN \
+  BLOCK "StringFileInfo" \
+  BEGIN \
+    BLOCK block_id \
+    BEGIN \
+      VALUE "CompanyName", "" \
+      VALUE "FileDescription", file_desc \
+      VALUE "FileVersion", "0.0.0" \
+      VALUE "InternalName", "RunCat for Windows" \
+      VALUE "LegalCopyright", "Copyright © 2015-2021 John Xiong. All Rights Reserved." \
+      VALUE "OriginalFilename", "runcat.exe" \
+      VALUE "ProductName", "RunCat" \
+      VALUE "ProductVersion", "0.0.0" \
+      VALUE "Comments", comments \
+    END \
+  END \
+  BLOCK "VarFileInfo" \
+  BEGIN \
+    VALUE "Translation", lang_id, codepage_id \
+  END \
+END
+
+LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
+VERSIONINFO_TEMPLATE(
+  "040904b0", 0x409, 0x4b0,
+  "RunCat for Windows",
+  "https://github.com/imgk/runcat-go/"
+)
+
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL
+VERSIONINFO_TEMPLATE(
+  "040404b0", 0x404, 0x4b0,
+  "RunCat for Windows",
+  "https://github.com/imgk/runcat-go/"
+)
+
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+VERSIONINFO_TEMPLATE(
+  "080404b0", 0x804, 0x4b0,
+  "RunCat for Windows",
+  "https://github.com/imgk/runcat-go/"
+)
