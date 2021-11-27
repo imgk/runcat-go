@@ -20,20 +20,18 @@ func init() {
 }
 
 func readTheme() string {
-	k, err := registry.OpenKey(registry.CURRENT_USER, `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`, registry.QUERY_VALUE)
+	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`, registry.QUERY_VALUE)
 	if err != nil {
-		// log.Printf("OpenKey error: %v\n", err)
+		log.Printf("OpenKey error: %v\n", err)
 		return "light_cat"
 	}
 	defer k.Close()
 
 	v, _, err := k.GetIntegerValue("AppsUseLightTheme")
 	if err != nil {
-		// log.Printf("GetIntegerValue error: %v\n", err)
+		log.Printf("GetIntegerValue error: %v\n", err)
 		return "light_cat"
 	}
-
-	log.Printf("AppsUserLightTheme: %v\n", v)
 
 	if v != 0 {
 		return "light_cat"
@@ -111,6 +109,7 @@ func loop() {
 			log.Printf("CPU usage: %v\n", per)
 			return time.Duration(Min+int64(Range*per*per*per)) * time.Millisecond
 		}())
+
 		if errCode := win.PdhCollectQueryData(handle); errCode != win.ERROR_SUCCESS {
 			log.Printf("PdhCollectQueryData error: %v\n", errCode)
 		}
