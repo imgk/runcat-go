@@ -3,15 +3,14 @@
 package runcat
 
 import (
-	"fmt"
 	"log"
 	"time"
-	"unsafe"
 
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 
 	"github.com/lxn/walk"
+	"github.com/lxn/win"
 )
 
 var channel = make(chan *walk.Icon)
@@ -23,16 +22,18 @@ func init() {
 func readTheme() string {
 	k, err := registry.OpenKey(registry.CURRENT_USER, `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`, registry.QUERY_VALUE)
 	if err != nil {
+		// log.Printf("OpenKey error: %v\n", err)
 		return "light_cat"
 	}
 	defer k.Close()
 
 	v, _, err := k.GetIntegerValue("AppsUseLightTheme")
 	if err != nil {
+		// log.Printf("GetIntegerValue error: %v\n", err)
 		return "light_cat"
 	}
 
-	fmt.Println(v)
+	log.Printf("AppsUserLightTheme: %v\n", v)
 
 	if v != 0 {
 		return "light_cat"
@@ -67,25 +68,51 @@ func loop() {
 		log.Panic(err)
 	}
 
-	// get CPU time
-	type TimeSet struct {
-		Idle   windows.Filetime
-		Kernel windows.Filetime
-		User   windows.Filetime
-	}
-	var one, two TimeSet
-	if err := GetsystemTimes(&one.Idle, &one.Kernel, &one.User); err != nil {
-		log.Panic(err)
-	}
-
 	// send first icon
 	channel <- icons[0]
 	index := 1
 
+	handle := win.PDH_HQUERY(0)
+	if errCode := win.PdhOpenQuery(0, 0, &handle); errCode != win.ERROR_SUCCESS {
+		log.Printf("PdhOpenQuery error: %v\n", windows.Errno(errCode))
+	}
+	defer win.PdhCloseQuery(handle)
+
+	counter := win.PDH_HCOUNTER(0)
+	if errCode := win.PdhAddCounter(handle, `\Processor Information(_Total)\% Processor Time`, 0, &counter); errCode != win.ERROR_SUCCESS {
+		log.Printf("PdhAddCounter error: %v\n", windows.Errno(errCode))
+	}
+
+	// if errCode := win.PdhCollectQueryData(handle); errCode != win.PDH_CSTATUS_INVALID_DATA {
+	if errCode := win.PdhCollectQueryData(handle); errCode != win.ERROR_SUCCESS {
+		log.Printf("PdhCollectQueryData error: %v\n", errCode)
+	}
+
+	time.Sleep(time.Second)
+
+	if errCode := win.PdhCollectQueryData(handle); errCode != win.ERROR_SUCCESS {
+		log.Printf("PdhCollectQueryData error: %v\n", errCode)
+	}
+
+	value := win.PDH_FMT_COUNTERVALUE_DOUBLE{}
+
 	for {
-		// get next CPU time
-		if err := GetsystemTimes(&two.Idle, &two.Kernel, &two.User); err != nil {
-			log.Panic(err)
+		// sleep due to CPU usage
+		time.Sleep(func() time.Duration {
+			const Min = 10
+			const Max = 500
+			const Range = Max - Min
+
+			if errCode := win.PdhGetFormattedCounterValueDouble(counter, nil, &value); errCode != win.ERROR_SUCCESS {
+				log.Printf("PdhCollectQueryData error: %v\n", errCode)
+			}
+
+			per := (100 - value.DoubleValue) / 100
+			log.Printf("CPU usage: %v\n", per)
+			return time.Duration(Min+int64(Range*per*per*per)) * time.Millisecond
+		}())
+		if errCode := win.PdhCollectQueryData(handle); errCode != win.ERROR_SUCCESS {
+			log.Printf("PdhCollectQueryData error: %v\n", errCode)
 		}
 
 		if t := readTheme(); theme != t {
@@ -94,29 +121,13 @@ func loop() {
 			var err error
 			icons, err = loadIcons(theme)
 			if err != nil {
-				log.Printf("change theme error: %s\n", err)
+				log.Printf("change theme error: %v\n", err)
 			}
 		}
-
-		// sleep due to CPU usage
-		time.Sleep(func() time.Duration {
-			const Min = 10
-			const Max = 500
-			const Range = Max - Min
-
-			idle := int64(two.Idle.LowDateTime) | int64(two.Idle.HighDateTime)<<32 - int64(one.Idle.LowDateTime) | int64(one.Idle.HighDateTime)<<32
-			kernel := int64(two.Kernel.LowDateTime) | int64(two.Kernel.HighDateTime)<<32 - int64(one.Kernel.LowDateTime) | int64(one.Kernel.HighDateTime)<<32
-			user := int64(two.User.LowDateTime) | int64(two.User.HighDateTime)<<32 - int64(one.User.LowDateTime) | int64(one.User.HighDateTime)<<32
-			percentage := float64(idle) / float64(kernel+user)
-
-			return time.Duration(Min+int64(Range*percentage*percentage)) * time.Millisecond
-		}())
 
 		// send icon
 		channel <- icons[index]
 
-		// update setting
-		one = two
 		if index == 4 {
 			index = 0
 		} else {
@@ -130,18 +141,3 @@ func GetNextIcon() *walk.Icon {
 	return <-channel
 }
 
-// Get CPU usage ...
-var (
-	kernel32 = windows.MustLoadDLL("kernel32.dll")
-
-	getSystemTimes = kernel32.MustFindProc("GetSystemTimes")
-)
-
-// GetSystemTimes is ...
-func GetsystemTimes(idle, kernel, user *windows.Filetime) error {
-	ret, _, err := getSystemTimes.Call(uintptr(unsafe.Pointer(idle)), uintptr(unsafe.Pointer(kernel)), uintptr(unsafe.Pointer(user)))
-	if ret == 0 {
-		return err
-	}
-	return nil
-}
