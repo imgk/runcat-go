@@ -42,13 +42,13 @@ func readTheme() string {
 
 func loadIcons(theme string) (icons [5]*walk.Icon, err error) {
 	for i, v := range []string{
-		"_0.ico",
-		"_1.ico",
-		"_2.ico",
-		"_3.ico",
-		"_4.ico",
+		"_0_ico",
+		"_1_ico",
+		"_2_ico",
+		"_3_ico",
+		"_4_ico",
 	} {
-		icons[i], err = walk.NewIconFromResource("$" + theme + v)
+		icons[i], err = walk.NewIconFromResource(theme + v)
 		if err != nil {
 			return
 		}

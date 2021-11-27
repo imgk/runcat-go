@@ -5,17 +5,17 @@
 
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST runcat.manifest
-$app.ico ICON app.ico
-$dark_cat_0.ico ICON cat/dark_cat_0.ico
-$dark_cat_1.ico ICON cat/dark_cat_1.ico
-$dark_cat_2.ico ICON cat/dark_cat_2.ico
-$dark_cat_3.ico ICON cat/dark_cat_3.ico
-$dark_cat_4.ico ICON cat/dark_cat_4.ico
-$light_cat_0.ico ICON cat/light_cat_0.ico
-$light_cat_1.ico ICON cat/light_cat_1.ico
-$light_cat_2.ico ICON cat/light_cat_2.ico
-$light_cat_3.ico ICON cat/light_cat_3.ico
-$light_cat_4.ico ICON cat/light_cat_4.ico
+app.ico ICON app.ico
+dark_cat_0_ico ICON cat/dark_cat_0.ico
+dark_cat_1_ico ICON cat/dark_cat_1.ico
+dark_cat_2_ico ICON cat/dark_cat_2.ico
+dark_cat_3_ico ICON cat/dark_cat_3.ico
+dark_cat_4_ico ICON cat/dark_cat_4.ico
+light_cat_0_ico ICON cat/light_cat_0.ico
+light_cat_1_ico ICON cat/light_cat_1.ico
+light_cat_2_ico ICON cat/light_cat_2.ico
+light_cat_3_ico ICON cat/light_cat_3.ico
+light_cat_4_ico ICON cat/light_cat_4.ico
 
 #define VERSIONINFO_TEMPLATE(block_id, lang_id, codepage_id, file_desc, comments) \
 VS_VERSION_INFO VERSIONINFO \
